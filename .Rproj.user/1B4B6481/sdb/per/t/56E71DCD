@@ -1,0 +1,17 @@
+{
+    "contents" : "require(openxlsx, quietly = TRUE)\nrequire(dplyr, quietly = TRUE)\nrequire(zoo, quietly = TRUE)\n#require(tidyr, quietly = TRUE)\n#require(lattice, quietly = TRUE)\n\n#download.file(\"http://www.cores.es/sites/default/files/archivos/estadisticas/consumos-pp-ccaa-provincias.xlsx\", \n#              \"consumos.xlsx\", mode = \"wb\")\ndf<-read.xlsx(\"../CORES/consumos.xlsx\", sheet=\"Consumos\", startRow = 6)\ndf<-filter(df, Año > 1997 & Año < 2020)\ndf<-select(df, -contains(\"bio\"))\nnames(df)<-c(\"Anyo\",\"Mes\",\"CCAA\",\"Provincia\",\"GS97\",\"GS95\",\"GS98\",\"GOA\",\"GOB\",\"GOC\",\"FOBIA\")\n\ndf<-mutate(df, fecha=as.yearmon(paste0(Mes,Anyo)))\ndf<-select(df, c(12,3:11))\ndf[is.na(df)] <- 0\ndf[,4:10]<-df[,4:10]/1000\nsaveRDS(df, file = 'consumos-pp-ccaa-provincias.RDS')\n\nCCAA.Sel<-\"Total Nacional\"\nProvincia.Sel<-\"Total\"\nxlim.Sel<-c(as.yearmon(\"Enero 2000\"), as.yearmon(\"Enero 2016\"))\nprod.Sel<-c('GS95','GOA')\nnorm.Sel<-TRUE\n\niprod.Sel<-which(names(df) %in% prod.Sel, arr.ind=T)\n\nz<-df %>% filter(CCAA==CCAA.Sel & Provincia==Provincia.Sel) %>% select(1, iprod.Sel)\nz<-zoo(x=z[,2:ncol(z)], order.by = z[,1])\n\nif(norm.Sel){\n      nor<-sapply(window(z, start = xlim.Sel[1], end = xlim.Sel[1]+11/12),function(x) 100/mean(x))\n      nor<-matrix(rep(nor,each=nrow(z)),ncol=ncol(z))\n      z<-z * nor\n}\n\n#zz<-rollmean(z,12, align = 'right')\n#names(zz)<-paste0(names(zz),\"_mean\")\n#z<-merge(z,zz)\n\n#xyplot(z, layout=c(1, ncol(z)), ylab='kt', main=CCAA.Sel, xlim=xlim.Sel, type=c(\"l\",\"g\", \"r\"))\ng<-autoplot(z)+ facet_free()+scale_x_yearmon(limits=xlim.Sel)\ng<-g + geom_line(color='blue', size=0.5)\ng<-g + stat_smooth(se=F, size=1.5)\ng<-g + xlab(\"Fecha\")+ylab(\"kt\")+ggtitle(CCAA.Sel)\ng<-g + theme(axis.text = element_text(size = 12),\n             plot.title = element_text(size = 16, face='bold'),\n             strip.text = element_text(size = 16, face='bold'),\n             axis.title.x = element_text(size = 14),\n             axis.title.y = element_text(size = 14),\n             panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),\n             strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),\n             panel.grid.major = element_line(colour = \"grey\"),\n             panel.grid.minor = element_blank())\nprint(g)\n",
+    "created" : 1458908625730.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4206895233",
+    "id" : "56E71DCD",
+    "lastKnownWriteTime" : 1458909646,
+    "path" : "~/RProjects/CORES/ShinyCores.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "type" : "r_source"
+}

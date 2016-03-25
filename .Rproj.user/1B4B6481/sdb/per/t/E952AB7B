@@ -1,0 +1,17 @@
+{
+    "contents" : "shinyServer(function(input, output) {\n      \n      #CCAA.Sel<-\"Total Nacional\"\n      #Provincia.Sel<-\"Total\"\n      #xlim.Sel<-c(as.yearmon(\"Enero 2000\"), as.yearmon(\"Enero 2016\"))\n      #norm.Sel<-TRUE\n      #prod.Sel<-c('GS95', 'GOA')\n      #iprod.Sel<-which(names(df) %in% prod.Sel, arr.ind=T)\n      \n      output$provincia.uisel<-renderUI({\n            provincia.list<-df %>% filter(CCAA==input$CCAA.sel) %>% select(Provincia) %>% distinct()\n            selectInput(\"provincia.sel\", \n                        label = h4(\"Provincia\"), \n                        choices = provincia.list,\n                        selected = 'Total',\n                        multiple = FALSE)\n      })\n      \n      output$plot1 <- renderPlot({\n            norm.Sel<-input$norm.sel\n            CCAA.Sel<-input$CCAA.sel\n            Provincia.Sel<-\"Total\"\n            if(!is.null(input$provincia.sel)){\n                  Provincia.Sel<-input$provincia.sel\n            }\n            prod.Sel<-input$prod.sel\n            xlim.Sel<-c(as.yearmon(paste(\"Enero\",input$fechas.sel[1])), as.yearmon(paste(\"Enero\",input$fechas.sel[2])))\n            if(fechas.rango[2] == input$fechas.sel[2]){xlim.Sel[2]<-df$fecha[nrow(df)]}\n            iprod.Sel<-which(names(df) %in% prod.Sel, arr.ind=T)\n            z<-df %>% filter(CCAA==CCAA.Sel & Provincia==Provincia.Sel) %>% select(1, iprod.Sel)\n            z<-zoo(x=z[,2:ncol(z)], order.by = z[,1])\n            if(norm.Sel){\n                  nor<-sapply(window(z, start = xlim.Sel[1], end = xlim.Sel[1]+11/12),function(x) 100/mean(x))\n                  nor<-matrix(rep(nor,each=nrow(z)),ncol=ncol(z))\n                  z<-z * nor\n            }\n            g<-autoplot(z)+ facet_free()+scale_x_yearmon(limits=xlim.Sel)\n            g<-g + geom_line(color='blue', size=0.5)\n            g<-g + stat_smooth(se=F, size=1)\n            g<-g + xlab(\"Fecha\")+ggtitle(paste0(CCAA.Sel, \"-\", Provincia.Sel))\n            if(norm.Sel) {\n                  g<-g + ylab(\"%\")\n            }else{\n                  g<-g + ylab(\"kt\")\n            }\n            g<-g + theme(axis.text = element_text(size = 12),\n                         plot.title = element_text(size = 16, face='bold'),\n                         strip.text = element_text(size = 16, face='bold'),\n                         axis.title.x = element_text(size = 14),\n                         axis.title.y = element_text(size = 14),\n                         panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),\n                         strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),\n                         panel.grid.major = element_line(colour = \"grey\"),\n                         panel.grid.minor = element_blank())\n            g\n      }, height = 800, width = 'auto')\n      \n })\n",
+    "created" : 1458897246025.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1233676707",
+    "id" : "E952AB7B",
+    "lastKnownWriteTime" : 1458939867,
+    "path" : "~/RProjects/shinyCORES/server.R",
+    "project_path" : "server.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "type" : "r_source"
+}

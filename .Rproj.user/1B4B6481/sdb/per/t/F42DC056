@@ -1,0 +1,17 @@
+{
+    "contents" : "shinyUI(navbarPage(\"Shiny CORES\",\n                  tabPanel(\"Datos Brutos por CCAA y Provincia\",\n\n                      fluidRow(\n                            #tags$style(type='text/css', \".selectize-input { font-size: 12px; line-height: 12px;} .selectize-dropdown { font-size: 12px; line-height: 12px; }\"),    \n                              column(3,\n                                   wellPanel(\n                                         checkboxGroupInput(\"prod.sel\", \n                                                      label = h4(\"Producto\"), \n                                                      choices = products.list,\n                                                      selected = products.list[c(2,4)]),\n                                         \n                                         br(),\n                                         \n                                         checkboxInput(\"norm.sel\", label=h5(\"normaliza?\"), value = FALSE)\n                                   ),\n                                         \n                                   wellPanel(\n                                         selectInput(\"CCAA.sel\", \n                                                     label = h4(\"CCAA\"), \n                                                     choices = CCAA.list,\n                                                     selected = CCAA.list[length(CCAA.list)],\n                                                     multiple = FALSE),\n\n                                         uiOutput(\"provincia.uisel\")\n\n                                   ),\n                                   wellPanel(\n                                         sliderInput(\"fechas.sel\", label = h4(\"Fechas\"), \n                                                     min = fechas.rango[1], \n                                                     max = fechas.rango[2], \n                                                     value = fechas.rango)\n\n                                   )\n                              ),\n                            column(9,\n                                   wellPanel(\n                                         plotOutput(\"plot1\")\n                                   )\n                            )\n                      )\n\n                  ),\n                  tabPanel(\"Datos Brutos por producto\"),\n                  tabPanel(\"Proyecciones\")\n))",
+    "created" : 1458897245419.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2216254849",
+    "id" : "F42DC056",
+    "lastKnownWriteTime" : 1458938858,
+    "path" : "~/RProjects/shinyCORES/ui.R",
+    "project_path" : "ui.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
