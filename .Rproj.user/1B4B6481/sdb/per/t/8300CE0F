@@ -1,12 +1,12 @@
 {
-    "contents" : "require(dplyr, quietly = TRUE)\nrequire(zoo, quietly = TRUE)\nrequire(ggplot2, quietly = TRUE)\n\ndf<-readRDS('data/consumos-pp-ccaa-provincias.RDS')\n\n#products.list<-eval(parse(text=paste0('list(',paste(names(df)[4:ncol(df)], '=', 4:ncol(df), collapse = ', '),')')))\nproducts.list<-names(df)[4:ncol(df)]\nCCAA.list<-unique(df$CCAA)\nfechas.rango<-c(as.numeric(df$fecha[1]), as.numeric(df$fecha[nrow(df)]))\n",
+    "contents" : "require(dplyr, quietly = TRUE)\nrequire(zoo, quietly = TRUE)\nrequire(ggplot2, quietly = TRUE)\nrequire(tidyr, quietly = TRUE)\n\ndf<-readRDS('data/consumos-pp-ccaa-provincias.RDS')\n\n#products.list<-eval(parse(text=paste0('list(',paste(names(df)[4:ncol(df)], '=', 4:ncol(df), collapse = ', '),')')))\nproducts.list<-names(df)[4:ncol(df)]\nCCAA.list<-unique(df$CCAA)\nfechas.rango<-c(as.numeric(df$fecha[1]), as.numeric(df$fecha[NROW(df)]))\n",
     "created" : 1458906502245.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3607310697",
+    "hash" : "4192700217",
     "id" : "8300CE0F",
-    "lastKnownWriteTime" : 1458938924,
+    "lastKnownWriteTime" : 1459013708,
     "path" : "~/RProjects/shinyCORES/global.R",
     "project_path" : "global.R",
     "properties" : {
