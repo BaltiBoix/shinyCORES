@@ -32,8 +32,13 @@ shinyServer(function(input, output) {
                               if(NCOL(z)>1) nor<-matrix(rep(nor,each=NROW(z)),ncol=NCOL(z))
                               z<-z * nor
                         }
-                        g<-autoplot(z, na.rm = TRUE)
-                        if(NCOL(z)>1) g<-g + facet_free()
+
+                        if(input$onefacet2.sel){
+                              g<-autoplot(z, na.rm = TRUE, facets = NULL)
+                        }else{
+                              g<-autoplot(z, na.rm = TRUE)
+                              if(NCOL(z)>1) g<-g + facet_free()
+                        }
                         g<-g + scale_x_yearmon(limits=xlim.Sel)
                         g<-g + geom_line(size=0.5, na.rm = TRUE)
                         g<-g + geom_smooth(se=F, size=1, na.rm = TRUE)
@@ -51,11 +56,15 @@ shinyServer(function(input, output) {
                                      panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),
                                      strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),
                                      panel.grid.major = element_line(colour = "grey"),
-                                     panel.grid.minor = element_blank())
+                                     panel.grid.minor = element_blank(),
+                                     legend.position = 'bottom',
+                                     legend.text = element_text(size = 14),
+                                     legend.title=element_blank())
+                        
                         g
                   }
             }
-      }, height = 800, width = 'auto')
+      }, height = 750, width = 'auto')
 
       output$provincia1.uisel<-renderUI({
             provincia1.list<-df %>% filter(CCAA %in% input$CCAA1.sel) %>% select(Provincia) %>% distinct()
@@ -130,6 +139,71 @@ shinyServer(function(input, output) {
                                legend.title=element_blank())
                   g
             }
-      }, height = 800, width = 'auto')
+      }, height = 750, width = 'auto')
+
+      output$producto.uisel<-renderUI({
+            product1.list<-NULL
+            for(f in input$familia.sel){
+                  product1.list<-c(product1.list, products.pp[grep(paste0("^",f), products.pp)])
+            }
+            selectInput("product1.sel", 
+                        label = h4("Producto"), 
+                        choices = product1.list,
+                        selected = 'total',
+                        multiple = TRUE)
+      })
+      
+      output$plot2 <- renderPlot({
+            
+            if(!is.null(input$product1.sel)){
+                  norm.Sel<-input$norm2.sel
+                  xlim.Sel<-c(as.yearmon(paste0(input$fechas2.sel[1],"-01-01")), 
+                              as.yearmon(paste0(input$fechas2.sel[2],"-01-01")))
+                  if(fechas1.rango[2] == input$fechas2.sel[2]){xlim.Sel[2]<-pp.df$fecha[nrow(pp.df)]}
+                  
+                  zpp<-pp.df %>% select(fecha, -anyo, -mes, one_of(input$product1.sel))
+                  
+                  zpp<-zoo(x = select(zpp, -fecha), order.by=zpp$fecha)
+                  
+                  if(norm.Sel){
+                        nor<-sapply(window(zpp, start = xlim.Sel[1], end = xlim.Sel[1]+11/12),
+                                    function(x) ifelse(is.na(100/mean(x)), 1, 100/mean(x)))
+                        if(NCOL(zpp)>1) nor<-matrix(rep(nor,each=NROW(zpp)),ncol=NCOL(zpp))
+                        zpp<-zpp * nor
+                  }
+                  #breaks.zpp = xlim.Sel[1]+seq.int(0,(xlim.Sel[2]-xlim.Sel[1])*12, length.out = 12)/12
+
+                  if(input$onefacet1.sel){
+                        g<-autoplot(zpp, na.rm = TRUE, facets = NULL)
+                  }else{
+                        g<-autoplot(zpp, na.rm = TRUE)
+                        if(NCOL(zpp)>1) g<-g + facet_free()
+                  }
+                  g<-g + scale_x_yearmon(limits=xlim.Sel, format = "%b %Y") #,breaks=breaks.zpp
+                  g<-g + geom_line(size=0.5, na.rm = TRUE)
+                  g<-g + geom_smooth(se=F, size=1, na.rm = TRUE)
+                  g<-g + xlab("Fecha")+ggtitle("Consumo mensual")
+                  if(norm.Sel) {
+                        g<-g + ylab("%")
+                  }else{
+                        g<-g + ylab("kt/mes")
+                  }
+                  g<-g + theme(axis.text = element_text(size = 12),
+                               plot.title = element_text(size = 16, face='bold'),
+                               strip.text = element_text(size = 16, face='bold'),
+                               axis.title.x = element_text(size = 14),
+                               axis.title.y = element_text(size = 14),
+                               panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),
+                               strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),
+                               panel.grid.major = element_line(colour = "grey"),
+                               panel.grid.minor = element_blank(),
+                               legend.position = 'bottom',
+                               legend.text = element_text(size = 14),
+                               legend.title=element_blank())
+                  
+                  g
+                  
+            }
+      }, height = 750, width = 'auto')
       
  })

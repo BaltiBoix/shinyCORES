@@ -1,18 +1,18 @@
 {
-    "contents" : "require(dplyr, quietly = TRUE)\nrequire(zoo, quietly = TRUE)\nrequire(ggplot2, quietly = TRUE)\nrequire(tidyr, quietly = TRUE)\n\ndf<-readRDS('data/consumos-pp-ccaa-provincias.RDS')\n\n#products.list<-eval(parse(text=paste0('list(',paste(names(df)[4:ncol(df)], '=', 4:ncol(df), collapse = ', '),')')))\nproducts.list<-names(df)[4:ncol(df)]\nCCAA.list<-unique(df$CCAA)\nfechas.rango<-c(as.numeric(df$fecha[1]), as.numeric(df$fecha[NROW(df)]))\n",
+    "contents" : "require(dplyr, quietly = TRUE)\nrequire(zoo, quietly = TRUE)\nrequire(ggplot2, quietly = TRUE)\nrequire(tidyr, quietly = TRUE)\nrequire(markdown, quietly = TRUE)\n\ndf<-readRDS('data/consumos-pp-ccaa-provincias.RDS')\npp.df<-readRDS('data/consumos-pp.RDS')\n\n#products.list<-eval(parse(text=paste0('list(',paste(names(df)[4:ncol(df)], '=', 4:ncol(df), collapse = ', '),')')))\nproducts.list<-names(df)[4:ncol(df)]\nCCAA.list<-unique(df$CCAA)\nfechas.rango<-c(as.numeric(df$fecha[1]), as.numeric(df$fecha[NROW(df)]))\n\nfamilia.list<-unique(unlist(strsplit(names(pp.df)[4:NCOL(pp.df)],\"[.]\"))[ c(TRUE,FALSE) ])\nproducts.pp<-names(pp.df)[4:NCOL(pp.df)]\nfechas1.rango<-c(as.numeric(pp.df$fecha[1]), as.numeric(pp.df$fecha[NROW(pp.df)]))\n",
     "created" : 1458906502245.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "4192700217",
+    "hash" : "3844400863",
     "id" : "8300CE0F",
-    "lastKnownWriteTime" : 1459013708,
+    "lastKnownWriteTime" : 1459095522,
     "path" : "~/RProjects/shinyCORES/global.R",
     "project_path" : "global.R",
     "properties" : {
         "tempName" : "Untitled1"
     },
-    "relative_order" : 4,
+    "relative_order" : 3,
     "source_on_save" : true,
     "type" : "r_source"
 }

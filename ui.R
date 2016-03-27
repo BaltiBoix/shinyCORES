@@ -1,5 +1,10 @@
-shinyUI(navbarPage("Shiny CORES",
-                  tabPanel("Datos Brutos por CCAA y Provincia",
+shinyUI(navbarPage(h4("Shiny CORES Consumo de Productos petrolíferos en España"),
+                   
+                  windowTitle = "Shiny CORES",
+                   
+                  position = "static-top",
+                  
+                  tabPanel("por CCAA y Provincia 1",
 
                       fluidRow(
                               column(3,
@@ -11,7 +16,9 @@ shinyUI(navbarPage("Shiny CORES",
                                          
                                          br(),
                                          
-                                         checkboxInput("norm.sel", label=h5("normaliza?"), value = FALSE)
+                                         checkboxInput("norm.sel", label=h5("normaliza?"), value = FALSE),
+                                         
+                                         checkboxInput("onefacet2.sel", label=h5("todo en uno?"), value = FALSE)
                                    ),
                                          
                                    wellPanel(
@@ -40,7 +47,7 @@ shinyUI(navbarPage("Shiny CORES",
                       )
 
                   ),
-                  tabPanel("Datos Brutos por producto",
+                  tabPanel("por CCAA y Provincia 2",
                            
                            fluidRow(
                                  column(3,
@@ -86,5 +93,51 @@ shinyUI(navbarPage("Shiny CORES",
                            
                            
                            ),
-                  tabPanel("Proyecciones")
+                  tabPanel("Consumos por producto",
+                           
+                           fluidRow(
+                                 column(3,
+                                        wellPanel(
+                                              checkboxGroupInput("familia.sel", 
+                                                                 label = h4("Familia"), 
+                                                                 choices = familia.list,
+                                                                 selected = familia.list[c(2,4)]),
+                                              
+                                              br(),
+                                              
+                                              checkboxInput("norm2.sel", label=h5("normaliza?"), value = FALSE),
+                                              
+                                              checkboxInput("onefacet1.sel", label=h5("todo en uno?"), value = FALSE)
+                                        ),
+                                        
+                                        uiOutput("producto.uisel"),
+                                              
+                                        wellPanel(
+                                              sliderInput("fechas2.sel", label = h4("Fechas"), 
+                                                          min = fechas1.rango[1], 
+                                                          max = fechas1.rango[2], 
+                                                          value = fechas1.rango)
+                                              
+                                        )
+                                     
+                                 ),
+                                 
+                                 column(9,
+                                        wellPanel(
+                                              plotOutput("plot2")
+                                        )
+                                 )
+                           )
+                           
+                  ),
+                  
+                  tabPanel("README",
+
+                           fluidRow(
+                                 column(10, offset = 1,
+                                        includeMarkdown("README.md")
+                                 )
+                           )
+                  )
+                           
 ))
