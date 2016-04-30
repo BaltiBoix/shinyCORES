@@ -55,7 +55,7 @@ shinyServer(function(input, output) {
                                      axis.title.y = element_text(size = 14),
                                      panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),
                                      strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),
-                                     panel.grid.major = element_line(colour = "grey"),
+                                     panel.grid.major= element_line(size = 0.25, colour = "red", linetype = "dotted"),
                                      panel.grid.minor = element_blank(),
                                      legend.position = 'bottom',
                                      legend.text = element_text(size = 14),
@@ -132,7 +132,7 @@ shinyServer(function(input, output) {
                                axis.title.y = element_text(size = 14),
                                panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),
                                strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),
-                               panel.grid.major = element_line(colour = "grey"),
+                               panel.grid.major= element_line(size = 0.25, colour = "red", linetype = "dotted"),
                                panel.grid.minor = element_blank(),
                                legend.position = 'bottom',
                                legend.text = element_text(size = 14),
@@ -149,7 +149,7 @@ shinyServer(function(input, output) {
             selectInput("product1.sel", 
                         label = h4("Producto"), 
                         choices = product1.list,
-                        selected = 'total',
+                        selected = c('GOIL.total', 'GSNA.total'),
                         multiple = TRUE)
       })
       
@@ -195,7 +195,7 @@ shinyServer(function(input, output) {
                                axis.title.y = element_text(size = 14),
                                panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),
                                strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),
-                               panel.grid.major = element_line(colour = "grey"),
+                               panel.grid.major= element_line(size = 0.25, colour = "red", linetype = "dotted"),
                                panel.grid.minor = element_blank(),
                                legend.position = 'bottom',
                                legend.text = element_text(size = 14),
@@ -206,4 +206,75 @@ shinyServer(function(input, output) {
             }
       }, height = 750, width = 'auto')
       
- })
+      output$producto1.uisel<-renderUI({
+            product2.list<-NULL
+            for(f in input$familia1.sel){
+                  product2.list<-c(product2.list, products.pp[grep(paste0("^",f), products.pp)])
+            }
+            selectInput("product2.sel", 
+                        label = h4("Producto"), 
+                        choices = product2.list,
+                        selected = 'GOIL.total',
+                        multiple = FALSE)
+      })
+      
+      output$plot3 <- renderPlot({
+            
+            if(!is.null(input$product2.sel)){
+                  xlim.Sel<-c(as.yearmon(paste0(input$fechas3.sel[1],"-01-01")), 
+                              as.yearmon(paste0(input$fechas3.sel[2],"-01-01")))
+                  if(fechas1.rango[2] == input$fechas3.sel[2]){xlim.Sel[2]<-pp.df$fecha[nrow(pp.df)]}
+                  
+                  z<-pp.df %>% select(fecha, -anyo, -mes, one_of(input$product2.sel))
+                  
+                  z<-zoo(x = select(z, -fecha), order.by=z$fecha)
+                  
+                  z<-na.locf(z)
+                  
+                  fit<-seas(as.ts(z), forecast.save = "fct", forecast.probability = 0.95)
+                  
+                  zz0<-data.frame(fecha=as.character(as.yearmon(time(original(fit)))),
+                                  original=drop(coredata(original(fit))),
+                                  stringsAsFactors = FALSE) 
+                  
+                  zz<-data.frame(fecha=as.character(as.yearmon(time(final(fit)))),
+                                 outlier=coredata(outlier(fit)),
+                                 final=coredata(final(fit)), 
+                                 trend=coredata(trend(fit)),
+                                 stringsAsFactors = FALSE) 
+
+                  zz<- left_join(zz, zz0, by='fecha')
+                  
+                  zzf<-data.frame(fecha=as.character(as.yearmon(time(series(fit, 'forecast.forecasts')))), 
+                                  series(fit, 'forecast.forecasts'),
+                                  stringsAsFactors = FALSE)
+                  
+                  zz<- full_join(zz, zzf, by='fecha') %>% mutate(fecha=as.yearmon(fecha))
+
+                  g<-ggplot(zz, na.rm = TRUE)
+                  g<-g + geom_line(aes(x=fecha, y=original, color='original'), size=0.5, na.rm = TRUE)
+                  g<-g + geom_text(aes(x=fecha, y=original, label=outlier), na.rm = TRUE)
+                  g<-g + geom_label(aes(x=fecha, y=original, label=outlier, color='outlier'), na.rm = TRUE)
+                  g<-g + geom_line(aes(x=fecha, y=final, color='final'), size=1, na.rm = TRUE)
+                  g<-g + geom_line(aes(x=fecha, y=trend, color='trend'), size=1.5, na.rm = TRUE)
+                  g<-g + geom_line(aes(x=fecha, y=forecast, color='forecast'), size=1, na.rm = TRUE)
+                  g<-g + geom_ribbon(aes(x=fecha, ymin = lowerci, ymax = upperci), fill = "grey70", alpha=0.5)
+                  g<-g + scale_color_manual(values=c('original'='chartreuse4', 'final'='black', 'trend'='blue', 'forecast'='red', 'outlier'='orange1'),
+                                            breaks=c('original', 'final', 'trend', 'forecast', 'outlier')) 
+                  g<-g + ylab("kt")+ggtitle("Consumo mensual")
+                  g<-g + scale_x_yearmon(limits=xlim.Sel)
+                  g<-g + theme(panel.background = element_rect(colour = "red"),
+                               plot.title = element_text(size = 16, face='bold', color='blue'),
+                               panel.grid.major= element_line(size = 0.25, colour = "red", linetype = "dotted"),
+                               axis.text.x = element_text(size = 14),
+                               axis.title.x = element_blank(),
+                               axis.title.y = element_text(size = 14),
+                               legend.position = 'bottom',
+                               legend.text = element_text(size = 14),
+                               legend.title=element_blank())
+                  g
+                  
+            }
+      }, height = 750, width = 'auto')
+
+})

@@ -1,8 +1,8 @@
 name: shinyCORES
 account: baltiboix
 server: shinyapps.io
-bundleId: 404218
+bundleId: 438553
 url: https://baltiboix.shinyapps.io/shinyCORES/
-when: 1459101287.56158
+when: 1462047269.99431
 asMultiple: FALSE
 asStatic: FALSE

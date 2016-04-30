@@ -131,6 +131,41 @@ shinyUI(navbarPage(h4("Shiny CORES Consumo de Productos petrolíferos en España
                            
                   ),
                   
+                  tabPanel("Análisis de estacionalidad",
+                           
+                           fluidRow(
+                                 column(3,
+                                        wellPanel(
+                                              selectInput("familia1.sel", 
+                                                           label = h4("Familia"), 
+                                                           choices = familia.list,
+                                                           selected = familia.list[4],
+                                                           multiple = FALSE),
+                                              
+                                              br(),
+                                              
+                                              uiOutput("producto1.uisel")
+                                        ),
+
+                                        wellPanel(
+                                              sliderInput("fechas3.sel", label = h4("Fechas"), 
+                                                          min = fechas1.rango[1], 
+                                                          max = fechas1.rango[2] + 3, 
+                                                          value = c(fechas1.rango[1], fechas1.rango[2] + 1))
+                                              
+                                        )
+                                        
+                                 ),
+                                 
+                                 column(9,
+                                        wellPanel(
+                                              plotOutput("plot3")
+                                        )
+                                 )
+                           )
+                           
+                  ),
+                  
                   tabPanel("README",
 
                            fluidRow(

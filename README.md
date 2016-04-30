@@ -26,13 +26,14 @@ Balti
 * *Consumos por CCAA y Provincia 1*
 * *Consumos por CCAA y Provincia 2*
 * *Consumos por producto*
+* *Análisis de estacionalidad*
 
 *************************************************************
 
-`
+
 Title: CORES Data shown interactively  
 Author: Balti Boix  
 Date: 27 de marzo de 2016  
 
-`
+
 
