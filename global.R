@@ -5,6 +5,10 @@ require(tidyr, quietly = TRUE)
 require(ggseas, quietly=TRUE)
 require(scales, quietly=TRUE)
 require(markdown, quietly = TRUE)
+require(plotly, quietly = TRUE)
+require(RColorBrewer, quietly = TRUE)
+
+jBrewColors <- brewer.pal(n = 9, name = "Set1")
 
 df<-readRDS('data/consumos-pp-ccaa-provincias.RDS')
 pp.df<-readRDS('data/consumos-pp.RDS')

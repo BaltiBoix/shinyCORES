@@ -41,7 +41,7 @@ shinyUI(navbarPage(h4("Shiny CORES Consumo de Productos petrolíferos en España
                               ),
                             column(9,
                                    wellPanel(
-                                         plotOutput("plot")
+                                         plotlyOutput("plot", height = "750px")
                                    )
                             )
                       )
