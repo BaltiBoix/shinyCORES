@@ -39,7 +39,6 @@ shinyServer(function(input, output) {
                         zdf <- fortify.zoo(z) %>% filter(Index >= as.Date(xlim.Sel[1]) & Index <= as.Date(xlim.Sel[2]))
                         names(zdf)[2]<-prod.Sel[1]
                         if(input$onefacet2.sel){
-                              # g<-autoplot(z, na.rm = TRUE, facets = NULL)
                               p <- plot_ly()
                               for(i in 2:length(zdf)){
                                     tsi<-ts(zdf[,i], frequency=12, start =c(as.numeric(format(index(z[1,1]), "%Y")), as.numeric(format(index(z[1,1]), "%m"))))
@@ -57,13 +56,14 @@ shinyServer(function(input, output) {
                                                          exponentformat="SI",
                                                          tickwidth=1, mirror = TRUE,
                                                          gridwidth=0.25, gridcolor = toRGB("red", alpha=0.25)),
-                                              title=paste0(CCAA.Sel, "-", Provincia.Sel))
+                                              title=paste0("<b>",CCAA.Sel, "-", Provincia.Sel,"</b>"), margin=list(t = 40, b=50),
+                                              font = list(size=16))
                               p
                         }else{
                               l<-list()
                               for(i in 2:length(zdf)){
                                     tsi<-ts(zdf[,i], frequency=12, start =c(as.numeric(format(index(z[1,1]), "%Y")), as.numeric(format(index(z[1,1]), "%m"))))
-                                    trend<-stl(tsi, "per")$time.series[, 2]
+                                    trend<-stl(tsi, s.window = 15)$time.series[, 2]
                                     p1 <- plot_ly() %>%
                                           add_lines(x=zdf[,1], y=zdf[,i], type="scatter", mode = "lines", name=names(zdf[i]),
                                                     line=list(color=jBrewColors[i-1], width=1.0)) %>%
@@ -78,7 +78,7 @@ shinyServer(function(input, output) {
                                                             tickwidth=1, mirror = TRUE,
                                                             gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)))
                                     p2 <- plot_ly() %>%
-                                          add_bars(x=zdf[,1], y=c(NA, diff(trend,1)), name=paste("diff",names(zdf[i])),
+                                          add_bars(x=zdf[,1], y=c(NA, diff(trend,1)), name=paste("Var",names(zdf[i])),
                                                    marker=list(color=jBrewColors[i-1])) %>%
                                           layout(xaxis=list(title="Fecha", type="date", showline=TRUE, showgrid=TRUE,
                                                             tickwidth=1, mirror = TRUE,
@@ -100,7 +100,8 @@ shinyServer(function(input, output) {
                                                       exponentformat="SI",
                                                       tickwidth=1, mirror = TRUE,
                                                       gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)),
-                                           title=paste0(CCAA.Sel, "-", Provincia.Sel))
+                                           title=paste0("<b>",CCAA.Sel, "-", Provincia.Sel,"</b>"), margin=list(t = 40, b=50),
+                                           font = list(size=16))
                         }
                   }
             }
@@ -116,7 +117,7 @@ shinyServer(function(input, output) {
                         multiple = TRUE)
       })
       
-      output$plot1 <- renderPlot({
+      output$plot1 <- renderPlotly({
             
             norm.Sel<-input$norm1.sel
             CCAA.Sel<-input$CCAA1.sel
@@ -141,45 +142,87 @@ shinyServer(function(input, output) {
                   spread(key=CCAA.Prov, value=psel)
             
             if(NROW(z)>0) {
-                  z<-zoo(x=z[,2:NCOL(z)], order.by = z[,1])
-                  
+                  z<-zoo(x=z[,2:NCOL(z)], order.by = as.Date(z[,1]))
+                  ytit<-"kt/mes"
                   if(norm.Sel){
-                        nor<-sapply(window(z, start = xlim.Sel[1], end = xlim.Sel[1]+11/12),function(x) 100/mean(x))
+                        nor<-sapply(window(z, start = as.Date(xlim.Sel[1]), end = as.Date(xlim.Sel[1]+11/12)),function(x) 100/mean(x))
                         if(NCOL(z)>1) nor<-matrix(rep(nor,each=NROW(z)),ncol=NCOL(z))
                         z<-z * nor
+                        ytit<-"%"
                   }
                   
+                  zdf <- fortify.zoo(z) %>% filter(Index >= as.Date(xlim.Sel[1]) & Index <= as.Date(xlim.Sel[2]))
+                  if(ncol(zdf) == 2) names(zdf)[2]<-paste0(CCAA.Sel[1],'.',Provincia.Sel[1])
+                  
                   if(onefacet.Sel){
-                        g<-autoplot(z, na.rm = TRUE, facets = NULL)
+                        p <- plot_ly()
+                        for(i in 2:length(zdf)){
+                              tsi<-ts(zdf[,i], frequency=12, start =c(as.numeric(format(index(z[1,1]), "%Y")), as.numeric(format(index(z[1,1]), "%m"))))
+                              trend<-stl(tsi, "per")$time.series[, 2]
+                              p <- p %>%
+                                    add_lines(x=zdf[,1], y=zdf[,i], type="scatter", mode = "lines", name=names(zdf[i]), 
+                                              line=list(color=jBrewColors[i-1], width=1.0)) %>%
+                                    add_lines(x=zdf[,1], y=coredata(trend), type="scatter", mode = "lines", 
+                                              showlegend=FALSE, hoverinfo = "none", line=list(color=jBrewColors[i-1], width=2.0))
+                        }
+                        p<-p %>% layout(xaxis=list(title="Fecha", type="date", showline=TRUE, showgrid=TRUE,
+                                                   tickwidth=1, mirror = TRUE,
+                                                   gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)),
+                                        yaxis=list(title=ytit, type="linear", showline=TRUE, showgrid=TRUE,
+                                                   exponentformat="SI",
+                                                   tickwidth=1, mirror = TRUE,
+                                                   gridwidth=0.25, gridcolor = toRGB("red", alpha=0.25)),
+                                        title=paste0("<b>",prod.Sel,"</b>"), margin=list(t = 40, b=50),
+                                        font = list(size=16))
+                        p
+                        
                   }else{
-                        g<-autoplot(z, na.rm = TRUE)
-                        if(NCOL(z)>1) g<-g + facet_free()
+                        l<-list()
+                        for(i in 2:length(zdf)){
+                              tsi<-ts(zdf[,i], frequency=12, start =c(as.numeric(format(index(z[1,1]), "%Y")), as.numeric(format(index(z[1,1]), "%m"))))
+                              trend<-stl(tsi, s.window = 15)$time.series[, 2]
+                              p1 <- plot_ly() %>%
+                                    add_lines(x=zdf[,1], y=zdf[,i], type="scatter", mode = "lines", name=names(zdf[i]),
+                                              line=list(color=jBrewColors[i-1], width=1.0)) %>%
+                                    add_lines(x=zdf[,1], y=coredata(trend), type="scatter", mode = "lines", 
+                                              name=paste("trend",names(zdf[i])), showlegend=FALSE, hoverinfo = "none",
+                                              line=list(color=jBrewColors[i-1], width=2.0)) %>%
+                                    layout(xaxis=list(title="Fecha", type="date", showline=TRUE, showgrid=TRUE,
+                                                      tickwidth=1, mirror = TRUE,
+                                                      gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)),
+                                           yaxis=list(title=ytit, type="linear", showline=TRUE, showgrid=TRUE,
+                                                      exponentformat="SI",
+                                                      tickwidth=1, mirror = TRUE,
+                                                      gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)))
+                              p2 <- plot_ly() %>%
+                                    add_bars(x=zdf[,1], y=c(NA, diff(trend,1)), name=paste("Var",names(zdf[i])),
+                                             marker=list(color=jBrewColors[i-1])) %>%
+                                    layout(xaxis=list(title="Fecha", type="date", showline=TRUE, showgrid=TRUE,
+                                                      tickwidth=1, mirror = TRUE,
+                                                      gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)),
+                                           yaxis=list(title=ytit, type="linear", showline=TRUE, showgrid=TRUE,
+                                                      exponentformat="SI",
+                                                      tickwidth=1, mirror = TRUE,
+                                                      gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5))) 
+                              
+                              
+                              l[[i-1]]<-subplot(p1, p2, nrows = 2, shareX = TRUE, heights = c(0.75,0.25))
+                              
+                        }
+                        subplot(l, nrows = ncol(zdf)-1, shareX = TRUE) %>%
+                              layout(xaxis=list(title="Fecha", type="date", showline=TRUE, showgrid=TRUE,
+                                                tickwidth=1, mirror = TRUE,
+                                                gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)),
+                                     yaxis=list(title=ytit, type="linear", showline=TRUE, showgrid=TRUE,
+                                                exponentformat="SI",
+                                                tickwidth=1, mirror = TRUE,
+                                                gridwidth=0.5, gridcolor = toRGB("red", alpha=0.5)),
+                                     title=paste0("<b>",prod.Sel,"</b>"), margin=list(t = 40, b=50),
+                                     font = list(size=16))
+                        
                   }
-                  g<-g + scale_x_yearmon(limits=xlim.Sel)
-                  g<-g + geom_line(size=0.5, na.rm = TRUE)
-                  g<-g + geom_smooth(se=F, size=1, na.rm = TRUE)
-                  g<-g + xlab("Fecha")
-                  if(norm.Sel){ 
-                        g<-g + ylab("%")
-                  }else{
-                        g<-g + ylab("kt/mes")
-                  }
-                  g<-g + ggtitle(prod.Sel)
-                  g<-g + theme(axis.text = element_text(size = 12),
-                               plot.title = element_text(size = 16, face='bold'),
-                               strip.text = element_text(size = 14, face='bold'),
-                               axis.title.x = element_text(size = 14),
-                               axis.title.y = element_text(size = 14),
-                               panel.border = element_rect(linetype = 'solid', color = 'red', fill = NA),
-                               strip.background = element_rect(linetype = 'solid', color = 'darkred', fill = 'gray'),
-                               panel.grid.major= element_line(size = 0.25, colour = "red", linetype = "dotted"),
-                               panel.grid.minor = element_blank(),
-                               legend.position = 'bottom',
-                               legend.text = element_text(size = 14),
-                               legend.title=element_blank())
-                  g
             }
-      }, height = 750, width = 'auto')
+      }) #, height = 750, width = 'auto')
 
       output$producto.uisel<-renderUI({
             product1.list<-NULL
@@ -193,7 +236,7 @@ shinyServer(function(input, output) {
                         multiple = TRUE)
       })
       
-      output$plot2 <- renderPlot({
+      output$plot2 <- renderPlotly({
             
             if(!is.null(input$product1.sel)){
                   norm.Sel<-input$norm2.sel
@@ -241,10 +284,10 @@ shinyServer(function(input, output) {
                                legend.text = element_text(size = 14),
                                legend.title=element_blank())
                   
-                  g
+                  ggplotly(g)
                   
             }
-      }, height = 750, width = 'auto')
+      })   #, height = 750, width = 'auto')
       
       output$producto1.uisel<-renderUI({
             product2.list<-NULL
